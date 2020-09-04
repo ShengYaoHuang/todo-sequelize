@@ -32,6 +32,7 @@ router.post('/register', (req, res) => {
   }
   if (errors.length) {
     return res.render('register', {
+      errors,
       name,
       email,
       password,
@@ -44,6 +45,7 @@ router.post('/register', (req, res) => {
       if (user) {
         errors.push({ message: '此 Email 已被註冊!' })
         return res.render('register', {
+          errors,
           name,
           email,
           password,
