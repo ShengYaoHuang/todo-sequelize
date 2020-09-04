@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
 
 const db = require('../../models')
 const Todo = db.Todo
+const User = db.User
 
 router.get('/login', (req, res) => {
   res.render('login')
@@ -21,10 +22,27 @@ router.get('/register', (req, res) => {
 
 router.post('/register', (req, res) => {
   const { name, email, password, confirmPassword } = req.body
+  const errors = []
+
+  if (!name || !email || !password || !confirmPassword) {
+    errors.push({ message: '所有欄位都是必填!' })
+  }
+  if (password !== confirmPassword) {
+    errors.push({ message: '密碼與確認密碼不一致!' })
+  }
+  if (errors.length) {
+    return res.render('register', {
+      name,
+      email,
+      password,
+      confirmPassword
+    })
+  }
+
   User.findOne({ where: { email } })
     .then(user => {
       if (user) {
-        console.log('User already exists.')
+        errors.push({ message: '此 Email 已被註冊!' })
         return res.render('register', {
           name,
           email,
@@ -41,12 +59,14 @@ router.post('/register', (req, res) => {
           password: hash
         }))
         .then(user => res.redirect('/'))
-        .catch(error => console.log(error))
+        .catch(error => { return res.status(422).json(error) })
     })
 })
 
 router.get('/logout', (req, res) => {
-  res.send('logout')
+  req.logout()
+  req.flash('success_msg', '您已成功登出。')
+  res.redirect('/users/login')
 })
 
 module.exports = router
